@@ -95,9 +95,15 @@ a.solid{display:inline-flex;align-items:center;text-decoration:none}
 .node>h2{margin:0 0 4px;font:600 17px/1.6 var(--ui);padding:3px 0}
 .kids{margin-left:-17px;padding-left:22px;border-left:1px solid var(--line)}
 .kid{position:relative;padding:7px 0}
-.kid::before{content:"";position:absolute;left:-13px;top:50%;margin-top:-3px;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}
-.kid.text::before{top:20px;margin-top:0}
-.kid.block::before{top:22px;margin-top:0}
+.kids>.kids{margin-left:0;padding-left:0;border-left:0}
+.kid::before{content:"";position:absolute;left:-13px;top:17px;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}   /* the dot sits beside the FIRST line, however many lines follow */
+.kid.text::before,.kid.todo::before{top:23px}
+.kid.block::before{top:25px}
+.kid:has(>.muted:first-child)::before{top:16px}                      /* small grey text */
+.kid:has(>.chips)::before{top:24px}                                  /* a row of chips, even when it wraps */
+.kid:has(>.rowf>.link)::before,.kid:has(>.link:first-child)::before{top:22px}
+.kid.block:has(>.line:first-child)::before{top:17px}
+.kid:not(.block):has(>.line)::before,.kid:has(>.habit)::before,.kid:has(>.rowf>.field)::before,.kid:has(>.mini)::before{top:50%;margin-top:-3px}   /* one row holding a control: centre on it */
 .line{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .label{font-weight:500}
 .label small{font-weight:400;font-size:13px;color:var(--ink-2);margin-left:6px}
@@ -111,6 +117,8 @@ select.h{min-width:96px} select.p{min-width:70px}
 .unit{font-size:14px;color:var(--ink-2)}
 .kid textarea{display:block;width:100%;border:0;background:none;resize:none;overflow:hidden;padding:6px 0;line-height:1.6;outline:none;border-bottom:1px solid transparent;border-radius:0}
 .kid textarea:focus{border-bottom-color:var(--water)}
+.kid textarea.box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;overflow:auto;resize:vertical}
+.kid textarea.box:focus{border-color:var(--water)}
 .kid textarea::placeholder{color:var(--ink-2);opacity:.45}
 .kid textarea:focus::placeholder{color:transparent}
 .habit{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:2px 0;border:0;background:none;text-align:left;font-weight:500}
@@ -161,7 +169,8 @@ select.h{min-width:96px} select.p{min-width:70px}
 .field.sm{width:84px;flex:none;text-align:center;padding:0 6px}
 .line.form .label{flex:none;width:88px}
 .line.form .field{flex:1;min-width:0;width:auto}
-input[type="date"].field{-webkit-appearance:none;appearance:none;text-align:left}
+input[type="date"].field{-webkit-appearance:none;appearance:none;text-align:left;line-height:40px;padding-top:0;padding-bottom:0}
+input[type="date"].field::-webkit-date-and-time-value{text-align:left;margin:0;line-height:40px}
 .tools{display:flex;gap:6px;flex:none}
 .tools button,.mini{flex:none;white-space:nowrap;height:42px;min-width:42px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:14px}
 .rowf{display:flex;gap:6px;align-items:center}
@@ -170,7 +179,7 @@ input[type="date"].field{-webkit-appearance:none;appearance:none;text-align:left
 .chips.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;flex-wrap:nowrap}
 .chips.week button{min-width:0;padding:0;font-size:14px;border-radius:12px}
 .chips button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.solid{height:44px;padding:0 16px;border:0;border-radius:10px;background:var(--ink);color:var(--paper);font-weight:600}
+.solid{flex:none;white-space:nowrap;height:44px;padding:0 16px;border:0;border-radius:10px;background:var(--ink);color:var(--paper);font-weight:600}
 .box{width:100%;min-height:120px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:12px;line-height:1.5;resize:vertical}
 .box.tall{min-height:420px;font:400 13px/1.6 var(--ui);white-space:pre-wrap}
 .tag{font-size:12px;color:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:8px;font-weight:400}
@@ -235,9 +244,10 @@ en:{appName:'Immersion Journal',saved:'Saved on this device {t}',local:'Records 
  inTitle:'Open this in Safari or Chrome',inBody:'Right now this page is open inside another app (KakaoTalk, a mail app). Here it can’t be installed, and records are kept separately from your browser.',inOpen:'Open in my browser',inCopy:'Copy link',inCopied:'Copied. Paste it into your browser’s address bar',
  iosTitle:'First, add this to your Home Screen',iosBody:'It opens like an app and your records stay safe. Anything you write here in the browser does not carry over, so add it first and then start recording.',iosStep1:'Tap the Share button at the bottom of the screen',iosStep1b:'Tap the Share button beside the address bar',iosStep2:'Choose ‘Add to Home Screen’',iosStep3:'Tap ‘Add’ at the top right',
  andTitle:'Install as an app',andBody:'You get an icon on your home screen and it opens like an app.',andInstall:'Install',andManual:'Open the browser menu (⋮) and choose ‘Install app’ or ‘Add to Home screen’.',later:'Later',
+ memo:'Note',memoLine:'Show a note line',memoEgFlow:'e.g. 2+4+2+4',memoEgChecks:'e.g. Exercise 1 h 30 min',
  dayNo:'Day {n}',dayRange:'days {a}–{b}',
  alignNote:'Your start date is a {day}. If the week also starts on {day}, the week number matches a count from your start date.',alignDo:'Start the week on {day}',
- report:'Report title',reportNote:'Shown above the first section and as the first line of the week text. Leave the start date empty to hide it.',startDate:'Start date',goal:'Goal',goalHint:'e.g. Thesis writing',reportEmpty:'No title yet. Choose a start date.',
+ report:'Journal title',reportNote:'Shown above the first section and as the first line of the week text. Leave the start date empty to hide it.',startDate:'Start date',goal:'Goal',goalHint:'e.g. Thesis writing',reportEmpty:'No title yet. Choose a start date.',
  setTitle:'Sections & settings',setSub:'Each day’s new page is built from these sections',secName:'Section name',up:'Move up',down:'Move down',type:'Type',
  tList:'Text',tTodo:'To-do',tFlow:'Immersion',tChecks:'Checkbox',tNumbers:'Number',delSection:'Delete section',delSectionSure:'Really delete (records are kept)',cancel:'Cancel',
  name:'Name',unit:'unit',del:'Delete',addCheck:'Add a checkbox',addNumber:'Add a number',newHabit:'New habit',newNumber:'New number',addSection:'Add a section',
@@ -271,9 +281,10 @@ ko:{appName:'몰입 일지',saved:'이 기기에 저장됨 {t}',local:'기록은
  inTitle:'Safari나 Chrome에서 열어 주세요',inBody:'지금은 다른 앱(카카오톡, 메일 앱 등) 안에서 열려 있어요. 여기서는 앱으로 설치할 수 없고, 기록도 브라우저와 따로 저장돼요.',inOpen:'내 브라우저로 열기',inCopy:'링크 복사',inCopied:'복사됨. 브라우저 주소창에 붙여 넣으세요',
  iosTitle:'먼저 홈 화면에 추가하세요',iosBody:'앱처럼 열리고 기록이 안전하게 남아요. 지금 브라우저에서 적은 기록은 홈 화면 앱으로 넘어가지 않으니, 추가한 다음에 기록을 시작하세요.',iosStep1:'화면 아래 가운데 공유 버튼 누르기',iosStep1b:'주소창 옆 공유 버튼 누르기',iosStep2:'‘홈 화면에 추가’ 고르기',iosStep3:'오른쪽 위 ‘추가’ 누르기',
  andTitle:'앱으로 설치하기',andBody:'홈 화면에 아이콘이 생기고 앱처럼 열려요.',andInstall:'설치',andManual:'브라우저 메뉴(⋮)에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 고르세요.',later:'나중에',
+ memo:'메모',memoLine:'메모 칸 보이기',memoEgFlow:'예: 2+4+2+4',memoEgChecks:'예: 운동 1시간 30분',
  dayNo:'{n}일차',dayRange:'{a}–{b}일차',
  alignNote:'시작일이 {day}이에요. 한 주의 시작도 {day}로 맞추면 주차가 시작일부터 센 것과 똑같아져요.',alignDo:'{day}로 맞추기',
- report:'보고 제목',reportNote:'첫 항목 위에, 그리고 주간 텍스트의 첫 줄에 표시돼요. 시작일을 비워 두면 표시하지 않아요.',startDate:'시작일',goal:'목표',goalHint:'예: 공기업 입사준비',reportEmpty:'아직 제목이 없어요. 시작일을 골라 주세요.',
+ report:'일지 제목',reportNote:'첫 항목 위에, 그리고 주간 텍스트의 첫 줄에 표시돼요. 시작일을 비워 두면 표시하지 않아요.',startDate:'시작일',goal:'목표',goalHint:'예: 공기업 입사준비',reportEmpty:'아직 제목이 없어요. 시작일을 골라 주세요.',
  setTitle:'항목과 설정',setSub:'매일 새 페이지가 이 항목들로 만들어져요',secName:'항목 이름',up:'위로',down:'아래로',type:'종류',
  tList:'텍스트',tTodo:'할 일',tFlow:'몰입도',tChecks:'체크',tNumbers:'숫자',delSection:'항목 삭제',delSectionSure:'정말 삭제 (기록은 남아요)',cancel:'취소',
  name:'이름',unit:'단위',del:'삭제',addCheck:'체크할 것 추가',addNumber:'숫자 추가',newHabit:'새 습관',newNumber:'새 숫자',addSection:'항목 추가',
@@ -345,7 +356,7 @@ function valText(v,it){return v==null?'—':(isHours(it)?hmText(v):withUnit(+v.t
 function uid(){return Math.random().toString(36).slice(2,9);}
 function daysBetween(a,b){return Math.round((sod(a)-sod(b))/864e5);}
 
-/* ---------- club week and report title ----------
+/* ---------- club week and journal title ----------
    Week N = floor((last day of the week that holds d - start date) / 7) + 1,
    so the day page and the week text always show the same number. */
 function weekNo(d){
@@ -484,6 +495,10 @@ function secSum(sec,key){
   if(sec.type==='list'||sec.type==='todo') return listSum(sec,v);
   return '';
 }
+function memoOn(sec){ return (sec.type==='flow'||sec.type==='checks')&&sec.memo===true; }   /* off unless the person switches it on for that section */
+function memoEg(sec){ return t(sec.type==='flow'?'memoEgFlow':'memoEgChecks'); }
+function memoSec(sec){ return {id:sec.id+':memo',type:'list',name:sec.name+' '+t('memo'),hint:memoEg(sec)}; }
+function memoRows(sec,key){ return memoOn(sec)?(secVal(key,sec.id+':memo')||[]):[]; }
 function listEditor(sec,key,sumEl){
   var todo=sec.type==='todo';
   var rows=(secVal(key,sec.id)||[]).map(function(r){return {id:r.id,text:r.text,done:!!r.done};});
@@ -617,7 +632,8 @@ function screenDay(){
     var headBtn=el('button',{class:'sec',type:'button','aria-label':t(isTodo?'openListAria':'openSummary',{name:sec.name}),onclick:function(){go('summary',{sec:sec.id,anchor:sod(d),lastDone:null});}},
       el('span',{class:'t',text:sec.name}),sumEl,el('span',{class:'go',text:t(isTodo?'openList':'summary')}));
     if(sec.type==='list'||sec.type==='todo') return el('section',{class:'node'},el('span',{class:'dot'}),headBtn,listEditor(sec,key,sumEl));
-    return node(headBtn,secBody(sec,key));
+    var kids=secBody(sec,key); if(memoOn(sec)) kids=kids.concat([listEditor(memoSec(sec),key,el('span'))]);
+    return node(headBtn,kids);
   });
   if(!DB.template.length) secs=[el('div',{class:'notice'},t('noSections'))];
   var copy=el('p',{style:'margin:4px 0 0 24px'},el('button',{class:'link',type:'button',text:t('copyWeek'),onclick:function(){go('export',{anchor:sod(d),exportText:null});}}));
@@ -693,9 +709,14 @@ function sumNumbers(sec,mode,dates,prevDates){
   });
 }
 function sumList(sec,mode,dates){
-  var out=[];
-  dates.forEach(function(d){ (secVal(keyOf(d),sec.id)||[]).forEach(function(r){
-    out.push(el('div',{class:'kid'},el('button',{class:'entry',type:'button',onclick:function(){goDay(d);}},el('span',{class:'d',text:md(d)+' '+dow(d)}),el('span',{text:r.text})))); }); });
+  /* the Notes summary also gathers the note lines written under Immersion and Habits; once those are in the mix, every line says where it came from */
+  var out=[],extra=sec.id==='notes'?DB.template.filter(memoOn):[],mixed=false;
+  dates.forEach(function(d){ extra.forEach(function(x){ if(memoRows(x,keyOf(d)).length) mixed=true; }); });
+  function row(d,text,tag){ return el('div',{class:'kid'},el('button',{class:'entry',type:'button',onclick:function(){goDay(d);}},el('span',{class:'d',text:md(d)+' '+dow(d)}),
+    el('span',null,tag?el('span',{class:'muted',text:'('+tag+') '}):null,text))); }
+  dates.forEach(function(d){ var k=keyOf(d);
+    if(mixed) extra.forEach(function(x){ memoRows(x,k).forEach(function(r){ out.push(row(d,r.text,x.name)); }); });
+    (secVal(k,sec.id)||[]).forEach(function(r){ out.push(row(d,r.text,mixed?sec.name:null)); }); });
   return out.length?out:[el('div',{class:'kid'},el('span',{class:'muted',text:t(mode==='week'?'nothingW':'nothingM')}))];
 }
 /* To-do page: like a Roam TODO page. Every unfinished item from every day, newest first, grouped by week. */
@@ -771,12 +792,14 @@ function weekText(anchor){
     if(!has(k)){ L.push('- '+t('noRecordsDay')); return; }
     DB.template.forEach(function(sec){
       var v=secVal(k,sec.id);
-      if(sec.type==='flow'){ var f=flowDay(k,sec.id); if(f.total==null) return;
+      var ms=memoRows(sec,k),named=false;
+      if(sec.type==='flow'){ var f=flowDay(k,sec.id); if(f.total!=null){ named=true;
         L.push('- '+sec.name+': '+(f.avg==null?t('daySumNoAvg',{h:fmt(f.total)}):t('daySum',{h:fmt(f.total),p:Math.round(f.avg)})));
-        P.forEach(function(pp){ var x=v&&v[pp.key]; if(x&&x.t!=null) L.push('  - '+pp.label+' ('+pp.range+'): '+t('hUnit',{n:fmt(x.t)})+', '+Math.round(x.i||0)+'%'); }); }
-      else if(sec.type==='checks'){ if((sec.items||[]).length) L.push('- '+sec.name+': '+sec.items.map(function(it){return it.name+' '+(v&&v[it.id]?'✓':'–');}).join(', ')); }
+        P.forEach(function(pp){ var x=v&&v[pp.key]; if(x&&x.t!=null) L.push('  - '+pp.label+' ('+pp.range+'): '+t('hUnit',{n:fmt(x.t)})+', '+Math.round(x.i||0)+'%'); }); } }
+      else if(sec.type==='checks'){ if((sec.items||[]).length){ named=true; L.push('- '+sec.name+': '+sec.items.map(function(it){return it.name+' '+(v&&v[it.id]?'✓':'–');}).join(', ')); } }
       else if(sec.type==='numbers'){ var ps=(sec.items||[]).filter(function(it){return v&&v[it.id]!=null;}).map(function(it){return it.name+' '+valText(v[it.id],it);}); if(ps.length) L.push('- '+sec.name+': '+ps.join(', ')); }
       else if(v&&v.length){ L.push('- '+sec.name); v.forEach(function(r){ L.push('  - '+(sec.type==='todo'?(r.done?'[x] ':'[ ] '):'')+r.text); }); }
+      if(ms.length){ if(!named) L.push('- '+sec.name); ms.forEach(function(r){ L.push('  - '+t('memo')+': '+r.text); }); }
     });
   });
   return L.join('\n');
@@ -819,6 +842,8 @@ function screenSettings(){
       el('button',{type:'button','aria-label':t('down'),disabled:idx===T.length-1,text:'↓',onclick:function(){T.splice(idx+1,0,T.splice(idx,1)[0]);changed();}})));
     var kids=[el('div',{class:'kid'},el('div',{class:'line'},el('span',{class:'muted'},t('type'),el('span',{class:'tag',text:TYPE[sec.type]||sec.type})),
       twoStep('sec:'+sec.id,t('delSection'),t('delSectionSure'),function(){T.splice(idx,1);changed();},'link danger')))];
+    if(sec.type==='flow'||sec.type==='checks'){ var mOn=memoOn(sec);                 /* the note line can be switched off for this section */
+      kids.push(el('div',{class:'kid'},el('button',{class:'habit',type:'button','aria-pressed':String(mOn),onclick:function(){sec.memo=!mOn;changed();}},checkSvg(el('span',{class:'check'})),t('memoLine'),el('span',{class:'muted',style:'margin-left:8px;font-weight:400',text:memoEg(sec)})))); }
     if(sec.type==='checks'||sec.type==='numbers'){
       (sec.items=sec.items||[]).forEach(function(it,j){
         var n=el('input',{class:'field',type:'text','aria-label':t('name'),value:it.name}); n.addEventListener('input',function(){it.name=n.value;save();});
