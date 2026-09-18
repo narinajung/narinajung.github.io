@@ -339,7 +339,7 @@ function el(tag,attrs){
   function add(x){ if(x==null||x===false) return; if(Array.isArray(x)){x.forEach(add);return;} n.appendChild(x.nodeType?x:document.createTextNode(String(x))); }
   return n;
 }
-var BUILD='9.18 23:31';   /* stamped by the build script */
+var BUILD='9.18 23:39';   /* stamped by the build script */
 function lang(){return STR[DB.settings.lang]?DB.settings.lang:'ko';}
 function t(k,vars){ var s=STR[lang()][k]; if(s==null) s=STR.en[k]!=null?STR.en[k]:k;
   return vars?s.replace(/\{(\w+)\}/g,function(m,a){return vars[a]!=null?vars[a]:'';}):s; }
@@ -347,17 +347,12 @@ function periods(){return PER[lang()].map(function(p){return {key:p[0],label:p[1
 var DAYP={en:['d','Whole day','','Day'],ko:['d','하루','','하루']};
 function dayPeriod(){var p=DAYP[lang()];return {key:p[0],label:p[1],range:p[2],short:p[3]};}
 function allPeriods(){return periods().concat([dayPeriod()]);}
-/* What to show for an Immersion section.
-   From the day the person chose a way of recording (modeSince), that way's line is always there, next to anything already recorded the other way: the choice must be visible at once.
-   Days before that keep the way they were recorded (three parts stay three parts, a whole day stays one line), and an empty day follows the setting. Nothing recorded is ever hidden. */
-function shownPeriods(sec,vals,key){ var P=periods(),D=dayPeriod();
-  function has(k){ return vals.some(function(v){ return v&&v[k]&&v[k].t!=null; }); }
-  var split=P.some(function(x){return has(x.key);}),whole=has('d'),wantWhole=sec.whole===true;
-  if(key&&sec.modeSince&&key>=sec.modeSince){ split=split||!wantWhole; whole=whole||wantWhole; }
-  if(split&&whole) return P.concat([D]);
-  if(split) return P;
-  if(whole) return [D];
-  return wantWhole?[D]:P; }
+/* What to show for an Immersion section: always the lines of the chosen way of recording, plus the lines of the other way wherever those already hold something.
+   So a change of setting shows at once on every day, and nothing recorded is ever hidden. Order: the parts of the day first, the whole day below them. */
+function shownPeriods(sec,vals){ var P=periods(),D=dayPeriod(),wantWhole=sec.whole===true;
+  function has(x){ return vals.some(function(v){ return v&&v[x.key]&&v[x.key].t!=null; }); }
+  var split=!wantWhole||P.some(has),whole=wantWhole||has(D);
+  return (split?P:[]).concat(whole?[D]:[]); }
 function dow(d){return DOWS[lang()][d.getDay()];}
 function pad(n){return String(n).padStart(2,'0');}
 function sod(d){var x=new Date(d);x.setHours(0,0,0,0);return x;}
@@ -698,7 +693,9 @@ function sumFlow(sec,mode,dates,prevDates){
     var g=el('div',{class:'depth'}); g.append(el('span'));
     dates.forEach(function(d){ g.append(el('button',{class:'dayhead'+(sameDay(d,td)?' today':''),type:'button','aria-label':t('open',{date:md(d)}),onclick:function(){goDay(d);}},dow(d),el('b',{text:String(d.getDate())}))); });
     shownPeriods(sec,dates.map(function(d){return secVal(keyOf(d),sec.id);}),keyOf(dates[dates.length-1])).forEach(function(P){ g.append(el('span',{class:'axis',text:P.short}));
-      dates.forEach(function(d){ var f=secVal(keyOf(d),sec.id),x=f&&f[P.key]; g.append(flowCell(d,x&&x.t!=null?x.t:null,x?x.i:null,P.label+(x&&x.t!=null?' '+t('hUnit',{n:fmt(x.t)})+' '+Math.round(x.i||0)+'%':''),false,P.key==='d')); }); });
+      dates.forEach(function(d){ var f=secVal(keyOf(d),sec.id),x=f&&f[P.key];
+        if(P.key==='d'){ var tot=flowDay(keyOf(d),sec.id); x=tot.total==null?null:{t:tot.total,i:tot.avg}; }
+        g.append(flowCell(d,x&&x.t!=null?x.t:null,x?x.i:null,P.label+(x&&x.t!=null?' '+t('hUnit',{n:fmt(x.t)})+' '+Math.round(x.i||0)+'%':''),false,P.key==='d')); }); });
     g.append(el('span'));
     dates.forEach(function(d){ var f=flowDay(keyOf(d),sec.id); g.append(el('div',{class:'foot'},el('b',{text:f.total==null?'—':fmt(f.total)+'h'}),f.avg==null?'':Math.round(f.avg)+'%')); });
     out.push(g,el('p',{class:'legend',text:t('legendW')}),depthKey());
@@ -926,7 +923,7 @@ function screenSettings(){
       twoStep('sec:'+sec.id,t('delSection'),t('delSectionSure'),function(){T.splice(idx,1);changed();},'link danger')))];
     if(sec.type==='flow'){ var whole=sec.whole===true;
       kids.push(el('div',{class:'kid'},el('div',{class:'chips',role:'group','aria-label':t('flowMode')},
-        [[true,t('flowWhole')],[false,t('flowSplit')]].map(function(a){ return el('button',{type:'button','aria-pressed':String(whole===a[0]),text:a[1],onclick:function(){ sec.whole=a[0]; sec.modeSince=keyOf(today()); changed(); }}); })))); }
+        [[true,t('flowWhole')],[false,t('flowSplit')]].map(function(a){ return el('button',{type:'button','aria-pressed':String(whole===a[0]),text:a[1],onclick:function(){ sec.whole=a[0]; changed(); }}); })))); }
     if(sec.type==='flow'||sec.type==='checks'||sec.type==='numbers'){ var mOn=memoOn(sec);                 /* the note line can be switched off for this section */
       kids.push(el('div',{class:'kid'},el('button',{class:'habit',type:'button','aria-pressed':String(mOn),onclick:function(){sec.memo=!mOn;changed();}},checkSvg(el('span',{class:'check'})),t('memoLine'),el('span',{class:'muted',style:'margin-left:8px;font-weight:400',text:memoEg(sec)}))));
       var notesSec=T.filter(function(x){return x.id==='notes';})[0];                  /* once it is on, say where those notes can be read back */
