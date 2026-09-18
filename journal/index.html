@@ -244,6 +244,7 @@ en:{appName:'Immersion Journal',saved:'Saved on this device {t}',local:'Records 
  inTitle:'Open this in Safari or Chrome',inBody:'Right now this page is open inside another app (KakaoTalk, a mail app). Here it can’t be installed, and records are kept separately from your browser.',inOpen:'Open in my browser',inCopy:'Copy link',inCopied:'Copied. Paste it into your browser’s address bar',
  iosTitle:'First, add this to your Home Screen',iosBody:'It opens like an app and your records stay safe. Anything you write here in the browser does not carry over, so add it first and then start recording.',iosStep1:'Tap the Share button at the bottom of the screen',iosStep1b:'Tap the Share button beside the address bar',iosStep2:'Choose ‘Add to Home Screen’',iosStep3:'Tap ‘Add’ at the top right',
  andTitle:'Install as an app',andBody:'You get an icon on your home screen and it opens like an app.',andInstall:'Install',andManual:'Open the browser menu (⋮) and choose ‘Install app’ or ‘Add to Home screen’.',later:'Later',
+ flowMode:'How to record',flowSplit:'Morning · Noon · Evening',flowWhole:'Whole day in one',
  memo:'Note',memoLine:'Show a note line',memoLink:'See this period’s {name} notes ({n})',memoHide:'Hide the {name} notes',memoWhere:'Notes written here are gathered, day by day, in the summary of ‘{name}’.',memoEgFlow:'e.g. 2+4+2+4',memoEgChecks:'e.g. Exercise 1 h 30 min',memoEgSleep:'e.g. Woke up twice before dawn',
  dayNo:'Day {n}',dayRange:'days {a}–{b}',
  alignNote:'Your start date is a {day}. If the week also starts on {day}, the week number matches a count from your start date.',alignDo:'Start the week on {day}',
@@ -281,6 +282,7 @@ ko:{appName:'몰입 일지',saved:'이 기기에 저장됨 {t}',local:'기록은
  inTitle:'Safari나 Chrome에서 열어 주세요',inBody:'지금은 다른 앱(카카오톡, 메일 앱 등) 안에서 열려 있어요. 여기서는 앱으로 설치할 수 없고, 기록도 브라우저와 따로 저장돼요.',inOpen:'내 브라우저로 열기',inCopy:'링크 복사',inCopied:'복사됨. 브라우저 주소창에 붙여 넣으세요',
  iosTitle:'먼저 홈 화면에 추가하세요',iosBody:'앱처럼 열리고 기록이 안전하게 남아요. 지금 브라우저에서 적은 기록은 홈 화면 앱으로 넘어가지 않으니, 홈 화면에 추가한 다음에 기록을 시작하세요.',iosStep1:'화면 아래 가운데 공유 버튼 누르기',iosStep1b:'주소창 옆 공유 버튼 누르기',iosStep2:'‘홈 화면에 추가’ 고르기',iosStep3:'오른쪽 위 ‘추가’ 누르기',
  andTitle:'앱으로 설치하기',andBody:'홈 화면에 아이콘이 생기고 앱처럼 열려요.',andInstall:'설치',andManual:'브라우저 메뉴(⋮)에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 고르세요.',later:'나중에',
+ flowMode:'기록 방식',flowSplit:'아침·점심·저녁',flowWhole:'하루 통으로',
  memo:'메모',memoLine:'메모 칸 보이기',memoLink:'이 기간의 {name} 메모 {n}건 보기',memoHide:'{name} 메모 접기',memoWhere:'여기에 적은 메모는 ‘{name}’ 항목의 요약에서 날짜별로 모아 볼 수 있어요.',memoEgFlow:'예: 2+4+2+4',memoEgChecks:'예: 운동 1시간 30분',memoEgSleep:'예: 새벽에 두 번 깼다',
  dayNo:'{n}일차',dayRange:'{a}–{b}일차',
  alignNote:'시작일이 {day}이에요. 한 주의 시작도 {day}로 맞추면 주차가 시작일부터 센 것과 똑같아져요.',alignDo:'{day}로 맞추기',
@@ -308,7 +310,7 @@ var MONL=['January','February','March','April','May','June','July','August','Sep
 function defaultTemplate(lang){ var D=DEF[lang]||DEF.en; return [
   {id:'events',type:'list',name:D.events,hint:D.eventsHint},
   {id:'todo',type:'todo',name:D.todo,hint:D.todoHint},
-  {id:'flow',type:'flow',name:D.flow},
+  {id:'flow',type:'flow',name:D.flow,whole:true},
   {id:'habits',type:'checks',name:D.habits,items:[{id:'exercise',name:D.exercise},{id:'vitamins',name:D.vitamins}]},
   {id:'sleep',type:'numbers',name:D.sleep,items:[{id:'hours',name:D.sleepHours,unit:D.uH,kind:'hours',step:0.5,max:16,pick:true},{id:'light',name:D.light,unit:D.uX,step:1,max:10,pick:true}]},
   {id:'notes',type:'list',name:D.notes,hint:D.notesHint}
@@ -333,6 +335,13 @@ function lang(){return STR[DB.settings.lang]?DB.settings.lang:'ko';}
 function t(k,vars){ var s=STR[lang()][k]; if(s==null) s=STR.en[k]!=null?STR.en[k]:k;
   return vars?s.replace(/\{(\w+)\}/g,function(m,a){return vars[a]!=null?vars[a]:'';}):s; }
 function periods(){return PER[lang()].map(function(p){return {key:p[0],label:p[1],range:p[2],short:p[3]};});}
+var DAYP={en:['d','Whole day','','Day'],ko:['d','하루','','하루']};
+function dayPeriod(){var p=DAYP[lang()];return {key:p[0],label:p[1],range:p[2],short:p[3]};}
+function allPeriods(){return periods().concat([dayPeriod()]);}
+/* What to show for an Immersion section: the rows of its chosen way of recording, plus any row of the other way that already holds something on these days (nothing recorded is ever hidden). */
+function shownPeriods(sec,vals){ var base=sec.whole===true?[dayPeriod()]:periods(),other=sec.whole===true?periods():[dayPeriod()];
+  var extra=other.filter(function(P){ return vals.some(function(v){ return v&&v[P.key]&&v[P.key].t!=null; }); });
+  return sec.whole===true?extra.concat(base):base.concat(extra); }
 function dow(d){return DOWS[lang()][d.getDay()];}
 function pad(n){return String(n).padStart(2,'0');}
 function sod(d){var x=new Date(d);x.setHours(0,0,0,0);return x;}
@@ -456,12 +465,12 @@ function setVal(key,id,v){ var d=dayRec(key,true); if(v===undefined) delete d.s[
 /* ---------- stats ---------- */
 function flowDay(key,id){
   var f=secVal(key,id),tt=0,w=0,wt=0,any=false; if(!f) return {total:null,avg:null};
-  periods().forEach(function(P){var p=f[P.key]; if(p&&p.t!=null){any=true;tt+=p.t; if(p.t>0&&p.i!=null){wt+=p.t;w+=p.t*p.i;}}});
+  allPeriods().forEach(function(P){var p=f[P.key]; if(p&&p.t!=null){any=true;tt+=p.t; if(p.t>0&&p.i!=null){wt+=p.t;w+=p.t*p.i;}}});
   return {total:any?tt:null,avg:wt?w/wt:null};
 }
 function flowRange(dates,id){
   var tt=0,w=0,n=0; dates.forEach(function(d){ var f=secVal(keyOf(d),id),any=false; if(!f) return;
-    periods().forEach(function(P){var p=f[P.key]; if(p&&p.t!=null){any=true; if(p.t>0&&p.i!=null){tt+=p.t;w+=p.t*p.i;}}}); if(any) n++; });
+    allPeriods().forEach(function(P){var p=f[P.key]; if(p&&p.t!=null){any=true; if(p.t>0&&p.i!=null){tt+=p.t;w+=p.t*p.i;}}}); if(any) n++; });
   return {time:tt,avg:tt?w/tt:null,days:n};
 }
 function checkCount(dates,id,itemId){ var n=0; dates.forEach(function(d){var v=secVal(keyOf(d),id); if(v&&v[itemId]) n++;}); return n; }
@@ -545,10 +554,10 @@ function listEditor(sec,key,sumEl){
 function secBody(sec,key){
   var v=secVal(key,sec.id);
   if(sec.type==='flow'){
-    return periods().map(function(P){
+    return shownPeriods(sec,[v]).map(function(P){ var top=P.key==='d'?36:24;      /* a whole day can hold more hours than one part of it */
       var p=(v&&v[P.key])||{t:null,i:null};
       var hs=el('select',{class:'h','aria-label':t('hoursOf',{p:P.label})}); hs.append(el('option',{value:'',text:t('hours')}));
-      for(var x=0;x<=24;x++) hs.append(el('option',{value:String(x/2),text:t('hUnit',{n:fmt(x/2)})}));
+      for(var x=0;x<=top;x++) hs.append(el('option',{value:String(x/2),text:t('hUnit',{n:fmt(x/2)})}));
       hs.value=p.t==null?'':String(p.t);
       var ps=el('select',{class:'p','aria-label':t('intensityOf',{p:P.label}),disabled:p.t==null||p.t===0}); ps.append(el('option',{value:'',text:'%'}));
       for(var y=100;y>=0;y-=5) ps.append(el('option',{value:String(y),text:y+'%'}));
@@ -558,7 +567,7 @@ function secBody(sec,key){
       hs.addEventListener('change',function(){ var tt=hs.value===''?null:Number(hs.value);
         if(tt==null) return write({t:null}); write({t:tt,i:tt===0?0:(p.i>0?p.i:DB.settings.lastIntensity)}); });
       ps.addEventListener('change',function(){ if(ps.value==='') return; var i=Number(ps.value); if(i>0) DB.settings.lastIntensity=i; write({t:p.t,i:i}); });
-      return el('div',{class:'kid'},el('div',{class:'line'},el('span',{class:'label'},P.label,el('small',{text:P.range})),el('span',{class:'picks'},hs,ps)));
+      return el('div',{class:'kid'},el('div',{class:'line'},el('span',{class:'label'},P.label,P.range?el('small',{text:P.range}):null),el('span',{class:'picks'},hs,ps)));
     });
   }
   if(sec.type==='checks'){
@@ -655,9 +664,9 @@ function calendar(dates,cellFn){
   dates.forEach(function(d){g.append(cellFn(d));});
   return g;
 }
-function flowCell(d,total,avgI,label,cal){
+function flowCell(d,total,avgI,label,cal,wholeDay){      /* a bar is full at 6 h for one part of the day, at 12 h for a whole day */
   var td=today(); if(total==null) return el('button',{class:'cell none'+(cal?' cal':'')+(sameDay(d,td)?' today':''),type:'button','aria-label':t('open',{date:md(d)}),onclick:function(){goDay(d);}},cal?el('span',{class:'v'},el('em',{text:String(d.getDate())})):null);
-  var fill=el('i'); fill.style.height=(Math.min(1,total/(cal?12:6))*100)+'%'; fill.style.background='rgba(var(--water-rgb),'+(0.18+0.82*Math.min(1,(avgI||0)/100)).toFixed(2)+')';
+  var fill=el('i'); fill.style.height=(Math.min(1,total/((cal||wholeDay)?12:6))*100)+'%'; fill.style.background='rgba(var(--water-rgb),'+(0.18+0.82*Math.min(1,(avgI||0)/100)).toFixed(2)+')';
   return el('button',{class:'cell'+(cal?' cal':'')+(sameDay(d,td)?' today':''),type:'button','aria-label':md(d)+' '+label,onclick:function(){goDay(d);}},
     el('span',{class:'v'},cal?el('em',{text:String(d.getDate())}):null,fmt(total)),el('div',{class:'bar'},fill));
 }
@@ -669,8 +678,8 @@ function sumFlow(sec,mode,dates,prevDates){
   if(W){
     var g=el('div',{class:'depth'}); g.append(el('span'));
     dates.forEach(function(d){ g.append(el('button',{class:'dayhead'+(sameDay(d,td)?' today':''),type:'button','aria-label':t('open',{date:md(d)}),onclick:function(){goDay(d);}},dow(d),el('b',{text:String(d.getDate())}))); });
-    periods().forEach(function(P){ g.append(el('span',{class:'axis',text:P.short}));
-      dates.forEach(function(d){ var f=secVal(keyOf(d),sec.id),x=f&&f[P.key]; g.append(flowCell(d,x&&x.t!=null?x.t:null,x?x.i:null,P.label+(x&&x.t!=null?' '+t('hUnit',{n:fmt(x.t)})+' '+Math.round(x.i||0)+'%':''),false)); }); });
+    shownPeriods(sec,dates.map(function(d){return secVal(keyOf(d),sec.id);})).forEach(function(P){ g.append(el('span',{class:'axis',text:P.short}));
+      dates.forEach(function(d){ var f=secVal(keyOf(d),sec.id),x=f&&f[P.key]; g.append(flowCell(d,x&&x.t!=null?x.t:null,x?x.i:null,P.label+(x&&x.t!=null?' '+t('hUnit',{n:fmt(x.t)})+' '+Math.round(x.i||0)+'%':''),false,P.key==='d')); }); });
     g.append(el('span'));
     dates.forEach(function(d){ var f=flowDay(keyOf(d),sec.id); g.append(el('div',{class:'foot'},el('b',{text:f.total==null?'—':fmt(f.total)+'h'}),f.avg==null?'':Math.round(f.avg)+'%')); });
     out.push(g,el('p',{class:'legend',text:t('legendW')}));
@@ -781,7 +790,7 @@ function screenSummary(){
 
 /* ---------- one week as plain text (for an email to a coach) ---------- */
 function weekText(anchor){
-  var dates=range(weekStartOf(anchor),7),L=[],P=periods();
+  var dates=range(weekStartOf(anchor),7),L=[],P=allPeriods();
   function has(k){ var d=DB.days[k]; return !!(d&&d.s&&Object.keys(d.s).some(function(id){ var v=d.s[id]; return Array.isArray(v)?v.length:(v&&Object.keys(v).length); })); }
   var rt=reportTitle(dates[6]); if(rt) L.push(rt);
   var dns=dates.map(dayNo).filter(function(n){return n!=null;}),dr=!dns.length?'':dns.length===1?t('dayNo',{n:dns[0]}):t('dayRange',{a:dns[0],b:dns[dns.length-1]});
@@ -803,7 +812,8 @@ function weekText(anchor){
       var ms=memoRows(sec,k),named=false;
       if(sec.type==='flow'){ var f=flowDay(k,sec.id); if(f.total!=null){ named=true;
         L.push('- '+sec.name+': '+(f.avg==null?t('daySumNoAvg',{h:fmt(f.total)}):t('daySum',{h:fmt(f.total),p:Math.round(f.avg)})));
-        P.forEach(function(pp){ var x=v&&v[pp.key]; if(x&&x.t!=null) L.push('  - '+pp.label+' ('+pp.range+'): '+t('hUnit',{n:fmt(x.t)})+', '+Math.round(x.i||0)+'%'); }); } }
+        var used=P.filter(function(pp){ var x=v&&v[pp.key]; return x&&x.t!=null; });
+        if(!(used.length===1&&used[0].key==='d')) used.forEach(function(pp){ var x=v[pp.key]; L.push('  - '+pp.label+(pp.range?' ('+pp.range+')':'')+': '+t('hUnit',{n:fmt(x.t)})+', '+Math.round(x.i||0)+'%'); }); } }
       else if(sec.type==='checks'){ if((sec.items||[]).length){ named=true; L.push('- '+sec.name+': '+sec.items.map(function(it){return it.name+' '+(v&&v[it.id]?'✓':'–');}).join(', ')); } }
       else if(sec.type==='numbers'){ var ps=(sec.items||[]).filter(function(it){return v&&v[it.id]!=null;}).map(function(it){return it.name+' '+valText(v[it.id],it);}); if(ps.length){ named=true; L.push('- '+sec.name+': '+ps.join(', ')); } }
       else if(v&&v.length){ L.push('- '+sec.name); v.forEach(function(r){ L.push('  - '+(sec.type==='todo'?(r.done?'[x] ':'[ ] '):'')+r.text); }); }
@@ -850,6 +860,9 @@ function screenSettings(){
       el('button',{type:'button','aria-label':t('down'),disabled:idx===T.length-1,text:'↓',onclick:function(){T.splice(idx+1,0,T.splice(idx,1)[0]);changed();}})));
     var kids=[el('div',{class:'kid'},el('div',{class:'line'},el('span',{class:'muted'},t('type'),el('span',{class:'tag',text:TYPE[sec.type]||sec.type})),
       twoStep('sec:'+sec.id,t('delSection'),t('delSectionSure'),function(){T.splice(idx,1);changed();},'link danger')))];
+    if(sec.type==='flow'){ var whole=sec.whole===true;
+      kids.push(el('div',{class:'kid'},el('div',{class:'chips',role:'group','aria-label':t('flowMode')},
+        [[true,t('flowWhole')],[false,t('flowSplit')]].map(function(a){ return el('button',{type:'button','aria-pressed':String(whole===a[0]),text:a[1],onclick:function(){ sec.whole=a[0]; changed(); }}); })))); }
     if(sec.type==='flow'||sec.type==='checks'||sec.type==='numbers'){ var mOn=memoOn(sec);                 /* the note line can be switched off for this section */
       kids.push(el('div',{class:'kid'},el('button',{class:'habit',type:'button','aria-pressed':String(mOn),onclick:function(){sec.memo=!mOn;changed();}},checkSvg(el('span',{class:'check'})),t('memoLine'),el('span',{class:'muted',style:'margin-left:8px;font-weight:400',text:memoEg(sec)}))));
       var notesSec=T.filter(function(x){return x.id==='notes';})[0];                  /* once it is on, say where those notes can be read back */
@@ -870,7 +883,7 @@ function screenSettings(){
   function lacks(type){ return !T.some(function(x){return x.type===type;}); }
   var adders=node(el('h2',{text:t('addSection')}),[el('div',{class:'kid'},el('span',{class:'muted'},t('addNote'),el('br'),t('addEg'))),el('div',{class:'kid'},el('div',{class:'chips'},
     [['checks',t('tChecks'),t('newChecks')],['numbers',t('tNumbers'),t('newNumbers')],['list',t('tList'),t('newList')]].concat(lacks('todo')?[['todo',t('tTodo'),D.todo]]:[],lacks('flow')?[['flow',t('tFlow'),D.flow]]:[]).map(function(a){
-      return el('button',{type:'button',text:a[1],onclick:function(){ var s={id:uid(),type:a[0],name:a[2]}; if(a[0]==='checks'||a[0]==='numbers') s.items=[]; if(a[0]==='todo') s.hint=D.todoHint; T.push(s); changed(); }}); })))]);
+      return el('button',{type:'button',text:a[1],onclick:function(){ var s={id:uid(),type:a[0],name:a[2]}; if(a[0]==='checks'||a[0]==='numbers') s.items=[]; if(a[0]==='todo') s.hint=D.todoHint; if(a[0]==='flow') s.whole=true; T.push(s); changed(); }}); })))]);
   var sd=el('input',{class:'field',type:'date','aria-label':t('startDate')}); sd.value=DB.settings.startDate||'';
   var gl=el('input',{class:'field',type:'text','aria-label':t('goal'),placeholder:t('goalHint'),value:DB.settings.goal||''});
   var pv=el('span',{class:'muted','aria-live':'polite'}); function showTitle(){ pv.textContent=reportTitle(today())||t('reportEmpty'); } showTitle();
