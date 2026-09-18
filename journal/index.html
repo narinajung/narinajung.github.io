@@ -338,10 +338,15 @@ function periods(){return PER[lang()].map(function(p){return {key:p[0],label:p[1
 var DAYP={en:['d','Whole day','','Day'],ko:['d','하루','','하루']};
 function dayPeriod(){var p=DAYP[lang()];return {key:p[0],label:p[1],range:p[2],short:p[3]};}
 function allPeriods(){return periods().concat([dayPeriod()]);}
-/* What to show for an Immersion section: the rows of its chosen way of recording, plus any row of the other way that already holds something on these days (nothing recorded is ever hidden). */
-function shownPeriods(sec,vals){ var base=sec.whole===true?[dayPeriod()]:periods(),other=sec.whole===true?periods():[dayPeriod()];
-  var extra=other.filter(function(P){ return vals.some(function(v){ return v&&v[P.key]&&v[P.key].t!=null; }); });
-  return sec.whole===true?extra.concat(base):base.concat(extra); }
+/* What to show for an Immersion section. A day keeps the way it was recorded: three parts stay three parts, a whole day stays one line, and only a day with nothing yet follows the chosen setting.
+   (Both kinds on the same day: show both, so nothing recorded is ever hidden.) */
+function shownPeriods(sec,vals){ var P=periods(),D=dayPeriod();
+  function has(k){ return vals.some(function(v){ return v&&v[k]&&v[k].t!=null; }); }
+  var split=P.some(function(x){return has(x.key);}),whole=has('d');
+  if(split&&whole) return P.concat([D]);
+  if(split) return P;
+  if(whole) return [D];
+  return sec.whole===true?[D]:P; }
 function dow(d){return DOWS[lang()][d.getDay()];}
 function pad(n){return String(n).padStart(2,'0');}
 function sod(d){var x=new Date(d);x.setHours(0,0,0,0);return x;}
