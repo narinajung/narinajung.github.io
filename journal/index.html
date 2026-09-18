@@ -245,6 +245,7 @@ en:{appName:'Immersion Journal',saved:'Saved on this device {t}',local:'Records 
  iosTitle:'First, add this to your Home Screen',iosBody:'It opens like an app and your records stay safe. Anything you write here in the browser does not carry over, so add it first and then start recording.',iosStep1:'Tap the Share button at the bottom of the screen',iosStep1b:'Tap the Share button beside the address bar',iosStep2:'Choose ‘Add to Home Screen’',iosStep3:'Tap ‘Add’ at the top right',
  andTitle:'Install as an app',andBody:'You get an icon on your home screen and it opens like an app.',andInstall:'Install',andManual:'Open the browser menu (⋮) and choose ‘Install app’ or ‘Add to Home screen’.',later:'Later',
  flowMode:'How to record',flowSplit:'Morning · Noon · Evening',flowWhole:'Whole day in one',
+ version:'Version',
  memo:'Note',memoLine:'Show a note line',memoLink:'See this period’s {name} notes ({n})',memoHide:'Hide the {name} notes',memoWhere:'Notes written here are gathered, day by day, in the summary of ‘{name}’.',memoEgFlow:'e.g. 2+4+2+4',memoEgChecks:'e.g. Exercise 1 h 30 min',memoEgSleep:'e.g. Woke up twice before dawn',
  dayNo:'Day {n}',dayRange:'days {a}–{b}',
  alignNote:'Your start date is a {day}. If the week also starts on {day}, the week number matches a count from your start date.',alignDo:'Start the week on {day}',
@@ -283,6 +284,7 @@ ko:{appName:'몰입 일지',saved:'이 기기에 저장됨 {t}',local:'기록은
  iosTitle:'먼저 홈 화면에 추가하세요',iosBody:'앱처럼 열리고 기록이 안전하게 남아요. 지금 브라우저에서 적은 기록은 홈 화면 앱으로 넘어가지 않으니, 홈 화면에 추가한 다음에 기록을 시작하세요.',iosStep1:'화면 아래 가운데 공유 버튼 누르기',iosStep1b:'주소창 옆 공유 버튼 누르기',iosStep2:'‘홈 화면에 추가’ 고르기',iosStep3:'오른쪽 위 ‘추가’ 누르기',
  andTitle:'앱으로 설치하기',andBody:'홈 화면에 아이콘이 생기고 앱처럼 열려요.',andInstall:'설치',andManual:'브라우저 메뉴(⋮)에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 고르세요.',later:'나중에',
  flowMode:'기록 방식',flowSplit:'아침·점심·저녁',flowWhole:'하루 통으로',
+ version:'버전',
  memo:'메모',memoLine:'메모 칸 보이기',memoLink:'이 기간의 {name} 메모 {n}건 보기',memoHide:'{name} 메모 접기',memoWhere:'여기에 적은 메모는 ‘{name}’ 항목의 요약에서 날짜별로 모아 볼 수 있어요.',memoEgFlow:'예: 2+4+2+4',memoEgChecks:'예: 운동 1시간 30분',memoEgSleep:'예: 새벽에 두 번 깼다',
  dayNo:'{n}일차',dayRange:'{a}–{b}일차',
  alignNote:'시작일이 {day}이에요. 한 주의 시작도 {day}로 맞추면 주차가 시작일부터 센 것과 똑같아져요.',alignDo:'{day}로 맞추기',
@@ -331,6 +333,7 @@ function el(tag,attrs){
   function add(x){ if(x==null||x===false) return; if(Array.isArray(x)){x.forEach(add);return;} n.appendChild(x.nodeType?x:document.createTextNode(String(x))); }
   return n;
 }
+var BUILD='9.18 23:16';   /* stamped by the build script */
 function lang(){return STR[DB.settings.lang]?DB.settings.lang:'ko';}
 function t(k,vars){ var s=STR[lang()][k]; if(s==null) s=STR.en[k]!=null?STR.en[k]:k;
   return vars?s.replace(/\{(\w+)\}/g,function(m,a){return vars[a]!=null?vars[a]:'';}):s; }
@@ -967,7 +970,8 @@ function screenSettings(){
         catch(e){ UI.mergeMsg=null; UI.importErr=t('importErr'); render(); } })),
     el('p',{class:'muted',style:'margin:8px 0 0;font-size:13px',text:t('mergeNote')})));
   bk.push(el('div',{class:'kid'},twoStep('wipe',t('wipe'),t('wipeSure'),function(){ DB.days={}; DB.template=defaultTemplate(lang()); saveNow(); go('day'); },'link danger')));
-  var end=el('div',{class:'endbar'},el('button',{class:'solid',type:'button',text:t('back'),onclick:function(){go('day');}}));
+  var end=el('div',{class:'endbar'},el('button',{class:'solid',type:'button',text:t('back'),onclick:function(){go('day');}}),
+    el('p',{class:'muted',style:'margin:14px 0 0;text-align:center;font-size:12px',text:t('version')+' '+BUILD}));
   return [head].concat(secs,[adders,report,week,langs,node(el('h2',{text:t('backup')}),bk),end]);
 }
 
