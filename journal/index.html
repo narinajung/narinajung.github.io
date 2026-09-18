@@ -145,7 +145,9 @@ select.h{min-width:96px} select.p{min-width:70px}
 .cell.today{border-color:var(--water)}
 .foot{text-align:center;font-size:12px;line-height:1.35;color:var(--ink-2);padding-top:2px}
 .foot b{display:block;color:var(--ink);font-weight:600;font-size:13px}
-.legend{font-size:12.5px;color:var(--ink-2);margin:0 0 20px}
+.legend{font-size:12.5px;color:var(--ink-2);margin:0}
+.scale{display:flex;flex-wrap:wrap;gap:4px 12px;margin:8px 0 20px;font-size:12px;color:var(--ink-2)}
+.scale i{display:inline-block;width:20px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line)}
 .cal7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:6px 0 4px}
 .cal7 .wd{text-align:center;font-size:12px;color:var(--ink-2)}
 .pipc{border:0;background:none;padding:2px 0;text-align:center;font-size:11px;color:var(--ink-2);line-height:1.2}
@@ -235,8 +237,8 @@ en:{appName:'Immersion Journal',saved:'Saved on this device {t}',local:'Records 
  toThisWeek:'Back to this week',toThisMonth:'Back to this month',open:'Open {date}',
  flowLead:'{h} hours, average intensity {p}%',noRecords:'No records yet',flowSub:'{d} days recorded, {a} h a day on average. ',
  prevW:'The week before: {h} h, average {p}%.',prevM:'The month before: {h} h, average {p}%.',noPrevW:'Nothing recorded the week before.',noPrevM:'Nothing recorded the month before.',
- legendW:'The number and the bar height show hours; a darker bar means higher intensity. The bottom row is each day’s total and average.',
- legendM:'The number beside the date and the bar height show the day’s hours; a darker bar means higher intensity.',weekRow:'{h} h, {p}%',
+ legendW:'The number and the bar height show hours; the bar’s colour shows intensity. The bottom row is each day’s total and average.',
+ legendM:'The number beside the date and the bar height show the day’s hours; the bar’s colour shows intensity.',weekRow:'{h} h, {p}%',
  checkLine:'{n} of {d} days, {prev} before: {pn}',wWord:'week',mWord:'month',didIt:'done',didNot:'not done',
  avg:'avg {v}',numDetail:'{n} days recorded, min {a}, max {b}',numPrev:'. The {w} before: avg {v}',
  nothingW:'Nothing written this week.',nothingM:'Nothing written this month.',todoLead:'{a} of {b} done',noTodoW:'No to-dos this week.',noTodoM:'No to-dos this month.',
@@ -276,8 +278,8 @@ ko:{appName:'몰입 일지',saved:'이 기기에 저장됨 {t}',local:'기록은
  toThisWeek:'이번 주로',toThisMonth:'이번 달로',open:'{date} 열기',
  flowLead:'{h}시간, 평균 몰입도 {p}%',noRecords:'아직 기록이 없어요',flowSub:'기록한 날 {d}일, 하루 평균 {a}시간. ',
  prevW:'전 주에는 {h}시간, 평균 {p}%.',prevM:'전 달에는 {h}시간, 평균 {p}%.',noPrevW:'전 주 기록은 없어요.',noPrevM:'전 달 기록은 없어요.',
- legendW:'칸의 숫자와 막대 높이는 몰입 시간, 색이 짙을수록 몰입도가 높아요. 맨 아래는 하루 합계와 평균.',
- legendM:'날짜 옆 숫자와 막대 높이는 하루 몰입 시간, 색이 짙을수록 몰입도가 높아요.',weekRow:'{h}시간, {p}%',
+ legendW:'칸의 숫자와 막대 높이는 몰입 시간, 막대 색은 몰입도예요. 맨 아래는 하루 합계와 평균.',
+ legendM:'날짜 옆 숫자와 막대 높이는 하루 몰입 시간, 막대 색은 몰입도예요.',weekRow:'{h}시간, {p}%',
  checkLine:'{n}회 / {d}일, 전 {prev} {pn}회',wWord:'주',mWord:'달',didIt:'함',didNot:'안 함',
  avg:'평균 {v}',numDetail:'기록 {n}일, 최소 {a}, 최대 {b}',numPrev:'. 전 {w} 평균 {v}',
  nothingW:'이 주에 적은 것이 없어요.',nothingM:'이 달에 적은 것이 없어요.',todoLead:'{b}개 중 {a}개 완료',noTodoW:'이 주에는 할 일이 없어요.',noTodoM:'이 달에는 할 일이 없어요.',
@@ -337,7 +339,7 @@ function el(tag,attrs){
   function add(x){ if(x==null||x===false) return; if(Array.isArray(x)){x.forEach(add);return;} n.appendChild(x.nodeType?x:document.createTextNode(String(x))); }
   return n;
 }
-var BUILD='9.18 23:26';   /* stamped by the build script */
+var BUILD='9.18 23:31';   /* stamped by the build script */
 function lang(){return STR[DB.settings.lang]?DB.settings.lang:'ko';}
 function t(k,vars){ var s=STR[lang()][k]; if(s==null) s=STR.en[k]!=null?STR.en[k]:k;
   return vars?s.replace(/\{(\w+)\}/g,function(m,a){return vars[a]!=null?vars[a]:'';}):s; }
@@ -679,12 +681,14 @@ function calendar(dates,cellFn){
   dates.forEach(function(d){g.append(cellFn(d));});
   return g;
 }
+function depthAlpha(i){ var x=Math.max(0,Math.min(1,((i||0)-40)/60)); return (0.10+0.90*Math.pow(x,1.7)).toFixed(2); }
 function flowCell(d,total,avgI,label,cal,wholeDay){      /* a bar is full at 6 h for one part of the day, at 12 h for a whole day */
   var td=today(); if(total==null) return el('button',{class:'cell none'+(cal?' cal':'')+(sameDay(d,td)?' today':''),type:'button','aria-label':t('open',{date:md(d)}),onclick:function(){goDay(d);}},cal?el('span',{class:'v'},el('em',{text:String(d.getDate())})):null);
-  var fill=el('i'); fill.style.height=(Math.min(1,total/((cal||wholeDay)?12:6))*100)+'%'; fill.style.background='rgba(var(--water-rgb),'+(0.18+0.82*Math.min(1,(avgI||0)/100)).toFixed(2)+')';
+  var fill=el('i'); fill.style.height=(Math.min(1,total/((cal||wholeDay)?12:6))*100)+'%'; fill.style.background='rgba(var(--water-rgb),'+depthAlpha(avgI)+')';
   return el('button',{class:'cell'+(cal?' cal':'')+(sameDay(d,td)?' today':''),type:'button','aria-label':md(d)+' '+label,onclick:function(){goDay(d);}},
     el('span',{class:'v'},cal?el('em',{text:String(d.getDate())}):null,fmt(total)),el('div',{class:'bar'},fill));
 }
+function depthKey(){ return el('div',{class:'scale','aria-hidden':'true'},[60,70,80,90,100].map(function(v){ var sw=el('i'); sw.style.background='rgba(var(--water-rgb),'+depthAlpha(v)+')'; return el('span',null,sw,v+'%'); })); }
 function sumFlow(sec,mode,dates,prevDates){
   var s=flowRange(dates,sec.id),p=flowRange(prevDates,sec.id),td=today(),out=[],W=mode==='week';
   out.push(el('p',{class:'lead',text:s.time?t('flowLead',{h:fmt(s.time),p:Math.round(s.avg)}):t('noRecords')}));
@@ -697,10 +701,10 @@ function sumFlow(sec,mode,dates,prevDates){
       dates.forEach(function(d){ var f=secVal(keyOf(d),sec.id),x=f&&f[P.key]; g.append(flowCell(d,x&&x.t!=null?x.t:null,x?x.i:null,P.label+(x&&x.t!=null?' '+t('hUnit',{n:fmt(x.t)})+' '+Math.round(x.i||0)+'%':''),false,P.key==='d')); }); });
     g.append(el('span'));
     dates.forEach(function(d){ var f=flowDay(keyOf(d),sec.id); g.append(el('div',{class:'foot'},el('b',{text:f.total==null?'—':fmt(f.total)+'h'}),f.avg==null?'':Math.round(f.avg)+'%')); });
-    out.push(g,el('p',{class:'legend',text:t('legendW')}));
+    out.push(g,el('p',{class:'legend',text:t('legendW')}),depthKey());
   }else{
     out.push(calendar(dates,function(d){ var f=flowDay(keyOf(d),sec.id); return flowCell(d,f.total,f.avg,f.total==null?'':t('hUnit',{n:fmt(f.total)}),true); }));
-    out.push(el('p',{class:'legend',text:t('legendM')}));
+    out.push(el('p',{class:'legend',text:t('legendM')}),depthKey());
     var rows=el('div',{class:'rows'}),seen={};
     dates.forEach(function(d){ var ws=weekStartOf(d),k=keyOf(ws); if(seen[k]) return; seen[k]=1;
       var wd=range(ws,7).filter(function(x){return x.getMonth()===d.getMonth();}),w=flowRange(wd,sec.id);
