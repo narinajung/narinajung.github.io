@@ -250,7 +250,7 @@ en:{appName:'Immersion Journal',saved:'Saved on this device {t}',local:'Records 
  report:'Journal title',reportNote:'Shown above the first section and as the first line of the week text. Leave the start date empty to hide it.',startDate:'Start date',goal:'Goal',goalHint:'e.g. Thesis writing',reportEmpty:'No title yet. Choose a start date.',
  setTitle:'Sections & settings',setSub:'Each day’s new page is built from these sections',secName:'Section name',up:'Move up',down:'Move down',type:'Type',
  tList:'Text',tTodo:'To-do',tFlow:'Immersion',tChecks:'Checkbox',tNumbers:'Number',delSection:'Delete section',delSectionSure:'Really delete (records are kept)',cancel:'Cancel',
- name:'Name',unit:'unit',del:'Delete',addCheck:'Add a checkbox',addNumber:'Add a number',newHabit:'New habit',newNumber:'New number',addSection:'Add a section',
+ name:'Name',unit:'unit',del:'Delete',addCheck:'Add a checkbox',addNumber:'Add a number',newHabit:'New habit',newNumber:'New number',addSection:'Add a section',addNote:'Make sections of your own.',addEg:'For example: mood, reading, gratitude, prayer',
  newChecks:'New checklist',newNumbers:'New numbers',newList:'New notes',weekStart:'Week starts on',language:'Language',
  backup:'Backup',backupNote:'Your records live only in this browser on this device. Make a backup before you switch devices or clear browser data.',
  makeBackup:'Make a backup',backupText:'Backup text',copyBackup:'Copy backup',copied:'Copied',copyHint:'Paste it into a note or an email to yourself.',
@@ -287,7 +287,7 @@ ko:{appName:'몰입 일지',saved:'이 기기에 저장됨 {t}',local:'기록은
  report:'일지 제목',reportNote:'첫 항목 위에, 그리고 주간 텍스트의 첫 줄에 표시돼요. 시작일을 비워 두면 표시하지 않아요.',startDate:'시작일',goal:'목표',goalHint:'예: 공기업 입사준비',reportEmpty:'아직 제목이 없어요. 시작일을 골라 주세요.',
  setTitle:'항목과 설정',setSub:'매일 새 페이지가 이 항목들로 만들어져요',secName:'항목 이름',up:'위로',down:'아래로',type:'종류',
  tList:'텍스트',tTodo:'할 일',tFlow:'몰입도',tChecks:'체크',tNumbers:'숫자',delSection:'항목 삭제',delSectionSure:'정말 삭제 (기록은 남아요)',cancel:'취소',
- name:'이름',unit:'단위',del:'삭제',addCheck:'체크할 것 추가',addNumber:'숫자 추가',newHabit:'새 습관',newNumber:'새 숫자',addSection:'항목 추가',
+ name:'이름',unit:'단위',del:'삭제',addCheck:'체크할 것 추가',addNumber:'숫자 추가',newHabit:'새 습관',newNumber:'새 숫자',addSection:'항목 추가',addNote:'필요한 기록을 직접 만들 수 있어요.',addEg:'예: 기분, 독서, 감사, 기도',
  newChecks:'새 체크 항목',newNumbers:'새 숫자 항목',newList:'새 메모',weekStart:'한 주의 시작',language:'언어',
  backup:'백업',backupNote:'기록은 이 기기의 이 브라우저에만 저장돼요. 기기를 바꾸거나 브라우저 데이터를 지우기 전에 백업을 만들어 두세요.',
  makeBackup:'백업 만들기',backupText:'백업 내용',copyBackup:'백업 복사',copied:'복사됨',copyHint:'복사해서 메모장이나 메일에 붙여 두세요.',
@@ -856,8 +856,10 @@ function screenSettings(){
     var n=node(headRow,kids); n.className='node edit'; return n;
   });
   var D=DEF[lang()];
-  var adders=node(el('h2',{text:t('addSection')}),[el('div',{class:'kid'},el('div',{class:'chips'},
-    [['checks',t('tChecks'),t('newChecks')],['numbers',t('tNumbers'),t('newNumbers')],['list',t('tList'),t('newList')],['todo',t('tTodo'),D.todo],['flow',t('tFlow'),D.flow]].map(function(a){
+  /* Checkbox, Number and Text are for sections of one's own. To-do and Immersion come built in: their buttons show only when that section has been deleted, so it can be brought back. */
+  function lacks(type){ return !T.some(function(x){return x.type===type;}); }
+  var adders=node(el('h2',{text:t('addSection')}),[el('div',{class:'kid'},el('span',{class:'muted'},t('addNote'),el('br'),t('addEg'))),el('div',{class:'kid'},el('div',{class:'chips'},
+    [['checks',t('tChecks'),t('newChecks')],['numbers',t('tNumbers'),t('newNumbers')],['list',t('tList'),t('newList')]].concat(lacks('todo')?[['todo',t('tTodo'),D.todo]]:[],lacks('flow')?[['flow',t('tFlow'),D.flow]]:[]).map(function(a){
       return el('button',{type:'button',text:a[1],onclick:function(){ var s={id:uid(),type:a[0],name:a[2]}; if(a[0]==='checks'||a[0]==='numbers') s.items=[]; if(a[0]==='todo') s.hint=D.todoHint; T.push(s); changed(); }}); })))]);
   var sd=el('input',{class:'field',type:'date','aria-label':t('startDate')}); sd.value=DB.settings.startDate||'';
   var gl=el('input',{class:'field',type:'text','aria-label':t('goal'),placeholder:t('goalHint'),value:DB.settings.goal||''});
