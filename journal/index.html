@@ -296,7 +296,7 @@ ko:{appName:'몰입 일지',saved:'이 기기에 저장됨 {t}',local:'기록은
  importErr:'백업 내용을 읽지 못했어요. 처음부터 끝까지 빠짐없이 붙여 넣었는지 확인하세요.',wipe:'모든 기록 지우기',wipeSure:'정말 모두 지우기'}
 };
 var DEF={
- en:{events:'Events',eventsHint:'e.g. Seminar at 2',todo:'Todo',todoHint:'Add a to-do',flow:'Immersion',habits:'Habit Tracker',exercise:'Exercise',vitamins:'Vitamins',sleep:'Sleep Tracker',sleepHours:'Last night’s sleep',light:'Light sleep',notes:'Notes',notesHint:'Write freely',uH:'h',uX:'×'},
+ en:{events:'Events',eventsHint:'e.g. Seminar at 2',todo:'Todo',todoHint:'Add a to-do',flow:'Immersion',habits:'Habit Tracker',exercise:'Exercise',vitamins:'Vitamins',sleep:'Sleep Tracker',sleepHours:'Last night’s sleep',light:'Light naps',notes:'Notes',notesHint:'Write freely',uH:'h',uX:'times'},
  ko:{events:'이벤트',eventsHint:'예: 세미나 2시',todo:'할 일',todoHint:'할 일 적기',flow:'몰입도',habits:'습관',exercise:'운동',vitamins:'비타민',sleep:'수면',sleepHours:'어젯밤 수면',light:'선잠',notes:'메모',notesHint:'자유롭게 적기',uH:'시간',uX:'회'}
 };
 var PER={en:[['m','Morning','09–12','Morn'],['a','Noon','12–18','Noon'],['e','Evening','18–24','Eve']],ko:[['m','아침','09–12','아침'],['a','점심','12–18','점심'],['e','저녁','18–24','저녁']]};
@@ -350,7 +350,8 @@ function dayTitle(d){return lang()==='ko'?(d.getMonth()+1)+'월 '+d.getDate()+'�
 function hm(d){return pad(d.getHours())+':'+pad(d.getMinutes());}
 function fmt(n){return Number.isInteger(n)?String(n):String(+n.toFixed(2));}
 function hmText(v){var m=Math.round(v*60),h=Math.floor(m/60);m=m%60;return lang()==='ko'?h+'시간'+(m?' '+m+'분':''):h+'h'+(m?' '+m+'m':'');}
-function withUnit(n,unit){return fmt(n)+(unit?(/^[A-Za-z]/.test(unit)?' ':'')+unit:'');}
+function withUnit(n,unit){ if(unit==='times'&&n===1) unit='time';      /* 1 time, 2 times */
+  return fmt(n)+(unit?(/^[A-Za-z]/.test(unit)?' ':'')+unit:''); }
 function isHours(it){return it.kind==='hours'||it.unit==='시간'||it.unit==='h';}
 function valText(v,it){return v==null?'—':(isHours(it)?hmText(v):withUnit(+v.toFixed(1),it.unit));}
 function uid(){return Math.random().toString(36).slice(2,9);}
@@ -369,13 +370,13 @@ function dayNo(d){
 }
 function reportTitle(d,parts){
   var n=weekNo(d); if(n==null) return null;
-  var s=DB.settings.startDate,g=(DB.settings.goal||'').trim(),head='[몰입클럽] '+n+'주차',sub=s+(g?', '+g:'');
+  var s=DB.settings.startDate,g=(DB.settings.goal||'').trim(),head=lang()==='ko'?'[몰입클럽] '+n+'주차':'[Molip Club] Week '+n,sub=s+(g?', '+g:'');   /* the title follows the screen language */
   return parts?{head:head,sub:sub}:head+' ('+sub+')';
 }
 
 /* ---------- storage: this browser only ---------- */
 function relabel(to){
-  var map={},l,k; for(l in DEF) for(k in DEF[l]) map[DEF[l][k]]=k; map['영양제']='vitamins'; map["Last night's sleep"]='sleepHours';
+  var map={},l,k; for(l in DEF) for(k in DEF[l]) map[DEF[l][k]]=k; map['영양제']='vitamins'; map["Last night's sleep"]='sleepHours'; map['Light sleep']='light'; map['×']='uX';
   function tr(s){return (s!=null&&map[s]&&DEF[to][map[s]])||s;}
   DB.template.forEach(function(sec){ sec.name=tr(sec.name); if(sec.hint) sec.hint=tr(sec.hint);
     (sec.items||[]).forEach(function(it){ it.name=tr(it.name); if(it.unit) it.unit=tr(it.unit); }); });
